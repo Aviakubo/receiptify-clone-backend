@@ -135,7 +135,8 @@ const generateMusicTasteAnalysis = async (formattedData) => {
         parameters: {
           max_new_tokens: 1000,
           return_full_text: false,
-          temperature: 0.7,
+          temperature: creativity,
+          seed: Math.floor(Math.random() * 10000)
         }
       },
     });
@@ -368,7 +369,7 @@ exports.analyzeMusicTaste = async (req, res) => {
 
 // Generate mood-based playlist recommendations
 exports.generateMoodPlaylist = async (req, res) => {
-  const { access_token, mood } = req.body;
+  const { access_token, mood, time_range = 'medium_term', creativity = 0.7 } = req.body;
   
   if (!access_token || !mood) {
     return res.status(400).json({ error: 'Access token and mood are required' });
@@ -379,8 +380,8 @@ exports.generateMoodPlaylist = async (req, res) => {
   try {
     // Fetch user's top tracks, artists, and audio features
     const [topTracksResponse, topArtistsResponse] = await Promise.all([
-      spotifyApi.getMyTopTracks({ limit: 50, time_range: 'medium_term' }),
-      spotifyApi.getMyTopArtists({ limit: 20, time_range: 'medium_term' })
+      spotifyApi.getMyTopTracks({ limit: 50, time_range }),
+      spotifyApi.getMyTopArtists({ limit: 20, time_range })
     ]);
     
     const topTracks = topTracksResponse.body.items.map(track => ({
